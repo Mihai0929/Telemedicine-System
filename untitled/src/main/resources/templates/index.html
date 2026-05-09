@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Telemedicină | Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background-color: #0d6efd; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05); }
+        .card-header { background-color: white; border-bottom: 1px solid #f0f2f5; border-radius: 12px 12px 0 0 !important; font-weight: 600; color: #2c3e50;}
+        .table-hover tbody tr:hover { background-color: #f8f9fa; transition: 0.2s; }
+        .btn-primary { border-radius: 8px; padding: 10px; font-weight: 500; }
+        .symptom-input { border-left: 3px solid #0d6efd; }
+    </style>
+</head>
+<body>
+
+<!-- bara navigatie -->
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="fas fa-heartbeat me-2"></i> MedConnect Telemedicină</a>
+
+        <form class="d-flex ms-auto" action="/dosar" method="get">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-0"><i class="fas fa-search text-primary"></i></span>
+                <input class="form-control border-0" type="number" name="pacientId" placeholder="Caută Dosar (ID Pacient)..." required>
+                <button class="btn btn-light fw-bold text-primary" type="submit">Deschide</button>
+            </div>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- Zona de alerte (Erori / Succes) -->
+    <div th:if="${mesajRezultat}"
+         th:class="${#strings.contains(mesajRezultat, 'EROARE')} ? 'alert alert-danger alert-dismissible fade show shadow-sm' : 'alert alert-success alert-dismissible fade show shadow-sm'"
+         role="alert">
+        <i th:class="${#strings.contains(mesajRezultat, 'EROARE')} ? 'fas fa-exclamation-triangle me-2' : 'fas fa-check-circle me-2'"></i>
+        <strong th:text="${#strings.contains(mesajRezultat, 'EROARE')} ? 'Eroare SQL:' : 'Succes!'"></strong>
+        <span th:text="${mesajRezultat}">Aici apare rezultatul</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${dosarPacient}" class="card mb-4 border-success shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center pb-2 pt-2">
+            <span><i class="fas fa-folder-open me-2"></i> Dosar Electronic Medical</span>
+            <a href="/" class="btn-close btn-close-white" title="Închide Dosarul"></a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 border-end">
+                    <h5 class="fw-bold text-success mb-1" th:text="${dosarPacient.nume_complet}"></h5>
+                    <p class="mb-1 text-muted small"><i class="fas fa-birthday-cake me-1"></i> Vârstă: <span th:text="${dosarPacient.varsta} + ' ani'"></span></p>
+                    <p class="mb-1 text-muted small"><i class="fas fa-id-card me-1"></i> Abonament: <strong th:text="${dosarPacient.tip_abonament}"></strong></p>
+                    <p class="mb-3 text-muted small"><i class="fas fa-calendar-times me-1"></i> Expiră la: <span th:text="${dosarPacient.data_expirare}"></span></p>
+
+                    <h6 class="fw-bold text-dark border-bottom pb-1"><i class="fas fa-notes-medical text-danger me-1"></i> Istoric Boli Cronice</h6>
+                    <ul class="text-danger small ps-3 mb-0">
+                        <li th:each="boala : ${dosarAfectiuni}" th:text="${boala}"></li>
+                        <li th:if="${#lists.isEmpty(dosarAfectiuni)}" class="text-muted list-unstyled"><i class="fas fa-check text-success"></i> Nu există istoric de boli.</li>
+                    </ul>
+                </div>
+
+                <!-- istoric consultatii si retete -->
+                <div class="col-md-9">
+                    <h6 class="fw-bold text-dark border-bottom pb-1 mb-3"><i class="fas fa-history text-primary me-1"></i> Istoric Consultații & Tratamente Prescrise</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered align-middle mb-0">
+                            <thead class="table-light text-muted small text-center">
+                            <tr>
+                                <th width="15%">Dată</th>
+                                <th width="25%">Medic Curant</th>
+                                <th width="30%">Diagnostic Înregistrat</th>
+                                <th width="30%">Rețetă Emisă</th>
+                            </tr>
+                            </thead>
+                            <tbody class="small">
+                            <tr th:each="cons : ${dosarConsultatii}">
+                                <td class="text-center" th:text="${cons.data_c}"></td>
+                                <td th:text="${cons.medic}"></td>
+                                <td th:text="${cons.diagnostic_provizoriu}"></td>
+                                <td class="text-primary fw-semibold" th:text="${cons.detalii_medicamente != null ? cons.detalii_medicamente : '-'}"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(dosarConsultatii)}">
+                                <td colspan="4" class="text-center text-muted py-3">Nu s-a găsit nicio consultație în istoricul pacientului.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- formular programare -->
+        <div class="col-lg-4">
+            <div th:if="${not #lists.isEmpty(fise)}" class="alert alert-info border-info shadow-sm mb-3">
+                <h6 class="alert-heading fw-bold"><i class="fas fa-robot"></i> Sistemul a generat întrebări noi (Fișă Suplimentară)!</h6>
+                <hr class="mt-1 mb-2">
+                <ul class="mb-0 small">
+                    <li th:each="fisa : ${fise}">
+                        Pentru <strong><span th:text="${fisa.nume_complet}"></span></strong>
+                        (Consult #<span th:text="${fisa.id_consultatie}"></span>):
+                        <em th:text="${fisa.intrebare}" class="text-danger"></em>
+                    </li>
+                </ul>
+            </div>
+            <div class="card h-100">
+                <div class="card-header pb-2 pt-3">
+                    <i class="fas fa-calendar-plus text-primary me-2"></i> Evaluare și Programare
+                </div>
+                <div class="card-body">
+                    <form action="/programeaza" method="post">
+
+                        <div class="mb-3">
+                            <label for="pacientId" class="form-label text-muted small text-uppercase fw-bold">ID Pacient (Client)</label>
+                            <input type="number" class="form-control bg-light" id="pacientId" name="pacientId" required placeholder="Ex: 1, 2, 3...">
+                        </div>
+
+                        <hr class="text-muted">
+
+                        <label class="form-label text-muted small text-uppercase fw-bold">Triaj - Introducere Simptome</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-white border-end-0 text-primary"><i class="fas fa-thermometer-half"></i></span>
+                            <input type="text" class="form-control border-start-0 symptom-input" name="simptom1" placeholder="Simptom 1 (ex: Febră)">
+                        </div>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-white border-end-0 text-primary"><i class="fas fa-head-side-cough"></i></span>
+                            <input type="text" class="form-control border-start-0 symptom-input" name="simptom2" placeholder="Simptom 2 (ex: Tuse)">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text bg-white border-end-0 text-primary"><i class="fas fa-dizzy"></i></span>
+                            <input type="text" class="form-control border-start-0 symptom-input" name="simptom3" placeholder="Simptom 3 (ex: Amețeală)">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="complexitate" class="form-label text-muted small text-uppercase fw-bold">Rezultat Algoritm Complexitate</label>
+                            <select class="form-select" id="complexitate" name="complexitate">
+                                <option value="1">Nivel 1 - Simplu (Alocare 10 min)</option>
+                                <option value="2">Nivel 2 - Mediu (Alocare 15 min)</option>
+                                <option value="3">Nivel 3 - Urgent/Complex (Alocare 30 min)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                            <i class="fas fa-magic me-1"></i> Auto-Programare Medic
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- tabelul cu consultatii -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header pb-2 pt-3 d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-list-alt text-primary me-2"></i> Ultimele Programări Active</span>
+                    <span class="badge bg-primary rounded-pill">Real-time DB</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Pacient</th>
+                                <th>Medic Alocat</th>
+                                <th>Dată & Oră</th>
+                                <th>Durată</th>
+                                <th>Status</th>
+                                <th>Acțiuni</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- iterez prin datele pornite -->
+                            <tr th:each="prog : ${programari}">
+                                <td class="ps-4 fw-bold text-secondary" th:text="'#' + ${prog.id_consultatie}"></td>
+                                <td class="fw-semibold" th:text="${prog.pacient}"></td>
+                                <td><span class="text-primary" th:text="${prog.medic != null ? prog.medic : 'N/A'}"></span></td>
+                                <td th:text="${prog.data_formatata}"></td>
+                                <td><span class="badge bg-light text-dark border" th:text="${prog.durata_minute} + ' min'"></span></td>
+                                <td>
+                                    <span class="badge" th:classappend="${prog.status == 'PROGRAMAT' ? 'bg-success' : (prog.status == 'FINALIZAT' ? 'bg-secondary' : 'bg-warning text-dark')}" th:text="${prog.status}"></span>
+                                </td>
+                                <td>
+                                    <button th:if="${prog.status == 'PROGRAMAT'}" type="button" class="btn btn-sm btn-outline-success fw-bold" data-bs-toggle="modal" th:data-bs-target="'#modalFinalizeaza' + ${prog.id_consultatie}">
+                                        <i class="fas fa-stethoscope"></i> Consultă
+                                    </button>
+
+                                    <div class="modal fade" th:id="'modalFinalizeaza' + ${prog.id_consultatie}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content border-success">
+                                                <div class="modal-header bg-success text-white">
+                                                    <h5 class="modal-title"><i class="fas fa-file-medical"></i> Finalizare Consult #<span th:text="${prog.id_consultatie}"></span></h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p class="small text-muted mb-3">Pacient: <strong th:text="${prog.pacient}"></strong></p>
+                                                    <form action="/finalizeaza" method="post">
+                                                        <input type="hidden" name="idConsultatie" th:value="${prog.id_consultatie}">
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-success">Diagnostic Final Identificat:</label>
+                                                            <input type="text" class="form-control" name="diagnosticFinal" required placeholder="Ex: Viroză respiratorie acută">
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-primary">Rețetă Electronică (Opțional):</label>
+                                                            <textarea class="form-control" name="reteta" rows="3" placeholder="Ex: Paracetamol 500mg, 1 la 8 ore..."></textarea>
+                                                        </div>
+
+                                                        <button type="submit" class="btn btn-success w-100"><i class="fas fa-check-circle"></i> Salvează și Închide Consultația</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(programari)}">
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-folder-open fa-2x mb-2"></i><br>
+                                    Nu există programări momentan.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

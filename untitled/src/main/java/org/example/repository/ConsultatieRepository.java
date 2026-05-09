@@ -105,4 +105,52 @@ public class ConsultatieRepository {
             return "EROARE LA FINALIZARE: " + e.getMessage();
         }
     }
+
+    public List<Map<String, Object>> getTopSimptome() {
+        try {
+            String sql = "SELECT LOWER(descriere_simptom) as simptom, COUNT(id_simptom) as total " +
+                    "FROM simptome_initiale " +
+                    "GROUP BY LOWER(descriere_simptom) " +
+                    "ORDER BY total DESC LIMIT 5";
+            return jdbcTemplate.queryForList(sql);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<Map<String, Object>> getIncarcareMedici() {
+        try {
+            String sql = "SELECT COALESCE(m.nume_medic, 'Sistem Automat') as medic, COUNT(c.id_consultatie) as total_consultatii " +
+                    "FROM consultatii c " +
+                    "LEFT JOIN medici m ON c.id_medic = m.id_medic " +
+                    "GROUP BY m.nume_medic " +
+                    "ORDER BY total_consultatii DESC";
+            return jdbcTemplate.queryForList(sql);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public String inregistreazaPacient(String nume, String email, String parola, java.time.LocalDate dataNastere, String tutore) {
+        String sql = "INSERT INTO pacienti (nume_complet, email, parola_hash, data_nastere, nume_tutore) VALUES (?, ?, ?, ?, ?)";
+        try {
+            jdbcTemplate.update(sql, nume, email, parola, dataNastere, tutore.isEmpty() ? null : tutore);
+            return "SUCCES: Contul a fost creat! Te poți autentifica.";
+        } catch (DataAccessException e) {
+            String err = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+            if (err.contains("ERROR:")) err = err.split("ERROR:")[1].split("\n")[0].trim();
+            if (err.toLowerCase().contains("unique constraint") || err.toLowerCase().contains("duplicate key")) {
+                return "EROARE: Există deja un cont creat cu acest email!";
+            }
+            return "EROARE DIN BAZA DE DATE: " + err;
+        }
+    }
+
+    public Integer autentificaPacient(String email, String parola) {
+        try {
+            return jdbcTemplate.queryForObject("SELECT id_pacient FROM pacienti WHERE email = ? AND parola_hash = ?", Integer.class, email, parola);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

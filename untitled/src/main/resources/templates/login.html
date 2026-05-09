@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Telemedicină | Autentificare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; min-height: 100vh; }
+        .login-container { max-width: 900px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .bg-login { background: linear-gradient(135deg, #0d6efd, #0044ff); color: white; padding: 40px; display: flex; flex-direction: column; justify-content: center;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Zona de afișare mesaje eroare/succes (inclusiv trigger-ul bazei de date) -->
+    <div th:if="${mesajRezultat}" class="text-center mb-3">
+        <div th:class="${#strings.contains(mesajRezultat, 'EROARE')} ? 'alert alert-danger shadow-sm d-inline-block' : 'alert alert-success shadow-sm d-inline-block'">
+            <i th:class="${#strings.contains(mesajRezultat, 'EROARE')} ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'"></i>
+            <span class="fw-bold" th:text="${mesajRezultat}"></span>
+        </div>
+    </div>
+
+    <div class="row login-container">
+        <!-- Partea Stângă: Autentificare -->
+        <div class="col-md-5 bg-login text-center">
+            <i class="fas fa-heartbeat fa-4x mb-3"></i>
+            <h3 class="fw-bold mb-4">MedConnect</h3>
+            <p>Sistem integrat de telemedicină și triaj automat.</p>
+            <hr class="bg-light opacity-50 mb-4">
+
+            <form action="/dologin" method="post" class="text-start">
+                <div class="mb-3">
+                    <label class="form-label text-white small fw-bold">Adresă Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="ex: pacient1@test.com" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-white small fw-bold">Parolă</label>
+                    <input type="password" name="parola" class="form-control" placeholder="****" required>
+                </div>
+                <button type="submit" class="btn btn-light text-primary fw-bold w-100">Intră în Cont</button>
+            </form>
+        </div>
+
+        <!-- Partea Dreaptă: Înregistrare Cont Nou -->
+        <div class="col-md-7 p-5">
+            <h4 class="fw-bold text-dark mb-4"><i class="fas fa-user-plus text-primary me-2"></i> Creare Cont Nou</h4>
+
+            <form action="/register" method="post">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Nume Complet</label>
+                        <input type="text" name="numeComplet" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Data Nașterii</label>
+                        <input type="date" name="dataNastere" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Parolă Setată</label>
+                        <input type="password" name="parola" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted">Nume Tutore Legal <span class="fw-normal text-danger">(Obligatoriu pentru minori)</span></label>
+                    <input type="text" name="tutore" class="form-control" placeholder="Lasă gol dacă ești adult">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Înregistrează-te în Sistem</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

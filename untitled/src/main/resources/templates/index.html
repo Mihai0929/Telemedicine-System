@@ -25,15 +25,17 @@
 
         <div class="d-flex ms-auto align-items-center">
 
-            <a href="/dosarul-meu" class="btn btn-light fw-bold text-primary me-3">
+            <button type="button" class="btn btn-warning fw-bold text-dark me-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAbonamente">
+                <i class="fas fa-star text-danger"></i> Oferte Abonamente
+            </button>
+
+            <a href="/dosarul-meu" class="btn btn-light fw-bold text-primary me-3 shadow-sm">
                 <i class="fas fa-folder-open"></i> Dosarul Meu
             </a>
 
-            <!-- buton deconectare -->
             <a href="/logout" class="btn btn-outline-light fw-bold">
                 <i class="fas fa-sign-out-alt"></i> Deconectare
             </a>
-
         </div>
     </div>
 </nav>
@@ -251,6 +253,43 @@
                             </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAbonamente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning text-dark fw-bold">
+                <h5 class="modal-title"><i class="fas fa-star text-danger"></i> Planuri și Abonamente Telemedicină</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <p class="text-center text-muted mb-4">Pentru a accesa consultațiile sistemului, ai nevoie de un abonament activ. Alege planul care ți se potrivește!</p>
+
+                <div class="row g-3">
+                    <div class="col-md-4" th:each="ab : ${listaAbonamente}">
+                        <div class="card h-100 border-0 shadow-sm text-center">
+                            <div class="card-header bg-dark text-white fw-bold py-3" th:text="${ab.nume_tip}"></div>
+                            <div class="card-body d-flex flex-column">
+                                <h3 class="card-title text-primary fw-bold" th:text="${ab.pret} + ' RON'"></h3>
+                                <p class="card-text text-muted small"><i class="fas fa-calendar-check text-success"></i> Valabilitate: <strong th:text="${ab.valabilitate_luni}"></strong> luni</p>
+
+                                <ul class="list-unstyled text-start small mb-4 mt-2">
+                                    <li><i class="fas fa-check text-success me-2"></i> Triaj Inteligent Nelimitat</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Dosar Electronic Inclus</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Rețete Online</li>
+                                </ul>
+
+                                <form action="/cumpara-abonament" method="post" class="mt-auto">
+                                    <input type="hidden" name="idAbonament" th:value="${ab.id_abonament}">
+                                    <button type="submit" class="btn btn-outline-primary w-100 fw-bold">Activează Planul</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

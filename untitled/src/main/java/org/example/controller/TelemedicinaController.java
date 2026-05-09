@@ -21,6 +21,7 @@ public class TelemedicinaController {
         model.addAttribute("fise", consultatieRepository.getFiseGenerate());
         model.addAttribute("topSimptome", consultatieRepository.getTopSimptome());
         model.addAttribute("incarcareMedici", consultatieRepository.getIncarcareMedici());
+        model.addAttribute("listaAbonamente", consultatieRepository.getToateAbonamentele());
     }
 
     @GetMapping("/")
@@ -137,6 +138,19 @@ public class TelemedicinaController {
         } else {
             model.addAttribute("mesajRezultat", "EROARE: Nu s-a putut încărca dosarul.");
         }
+        return "index";
+    }
+
+    @PostMapping("/cumpara-abonament")
+    public String cumparaAbonament(jakarta.servlet.http.HttpSession session,
+                                   @RequestParam int idAbonament,
+                                   Model model) {
+        Integer pacientId = (Integer) session.getAttribute("userLogat");
+        if (pacientId == null) return "redirect:/login";
+
+        String rezultat = consultatieRepository.cumparaAbonament(pacientId, idAbonament);
+        model.addAttribute("mesajRezultat", rezultat);
+        incarcaDateDashboard(model);
         return "index";
     }
 }

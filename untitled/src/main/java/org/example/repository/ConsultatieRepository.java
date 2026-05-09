@@ -153,4 +153,26 @@ public class ConsultatieRepository {
             return null;
         }
     }
+
+    public List<Map<String, Object>> getToateAbonamentele() {
+        try {
+            return jdbcTemplate.queryForList("SELECT * FROM abonamente ORDER BY pret ASC");
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public String cumparaAbonament(int idPacient, int idAbonament) {
+        String sql = "UPDATE pacienti " +
+                "SET id_abonament_activ = ?, " +
+                "    data_expirare_abonament = CURRENT_DATE + (SELECT valabilitate_luni * INTERVAL '1 month' FROM abonamente WHERE id_abonament = ?) " +
+                "WHERE id_pacient = ?";
+        try {
+
+            jdbcTemplate.update(sql, idAbonament, idAbonament, idPacient);
+            return "SUCCES: Abonamentul a fost activat/prelungit cu succes!";
+        } catch (Exception e) {
+            return "EROARE LA PLATA ABONAMENTULUI: " + e.getMessage();
+        }
+    }
 }

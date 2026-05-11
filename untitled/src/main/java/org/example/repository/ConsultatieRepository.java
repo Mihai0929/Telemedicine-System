@@ -175,4 +175,31 @@ public class ConsultatieRepository {
             return "EROARE LA PLATA ABONAMENTULUI: " + e.getMessage();
         }
     }
+
+    public List<Map<String, Object>> getProgramariPersonalizate(int pacientId) {
+        try {
+            String sql = "SELECT c.id_consultatie, p.nume_complet AS pacient, " +
+                    "COALESCE(m.nume_medic, 'Sistem (Automat)') AS medic, " +
+                    "TO_CHAR(c.data_ora_programare, 'DD.MM.YYYY HH24:MI') AS data_formatata, " +
+                    "c.durata_minute, c.status " +
+                    "FROM consultatii c " +
+                    "JOIN pacienti p ON c.id_pacient = p.id_pacient " +
+                    "LEFT JOIN medici m ON c.id_medic = m.id_medic " +
+                    "WHERE c.id_pacient = ? " + // Filtru: doar ale mele
+                    "ORDER BY c.id_consultatie DESC";
+            return jdbcTemplate.queryForList(sql, pacientId);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public String anuleazaProgramare(int idConsultatie) {
+        String sql = "UPDATE consultatii SET status = 'ANULAT' WHERE id_consultatie = ?";
+        try {
+            jdbcTemplate.update(sql, idConsultatie);
+            return "SUCCES: Programarea #" + idConsultatie + " a fost anulată.";
+        } catch (Exception e) {
+            return "EROARE LA ANULARE: " + e.getMessage();
+        }
+    }
 }

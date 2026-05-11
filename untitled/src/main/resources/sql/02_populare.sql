@@ -45,7 +45,7 @@ FOR i IN 1..15 LOOP
 SELECT id_pacient INTO random_pacient_id FROM pacienti ORDER BY random() LIMIT 1;
 SELECT id_medic INTO random_medic_id FROM medici ORDER BY random() LIMIT 1;
 
-INSERT INTO consultatii (id_pacient, id_medic, data_ora_programare, durata_minute, status)
+INSERT INTO consultatii (id_pacient, id_medic, data_ora_progrwamare, durata_minute, status)
 VALUES (
            random_pacient_id,
            random_medic_id,

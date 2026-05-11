@@ -42,7 +42,6 @@
 
 <div class="container">
 
-    <!-- Zona de alerte (Erori / Succes) -->
     <div th:if="${mesajRezultat}"
          th:class="${#strings.contains(mesajRezultat, 'EROARE')} ? 'alert alert-danger alert-dismissible fade show shadow-sm' : 'alert alert-success alert-dismissible fade show shadow-sm'"
          role="alert">
@@ -208,36 +207,46 @@
                                 <td th:text="${prog.data_formatata}"></td>
                                 <td><span class="badge bg-light text-dark border" th:text="${prog.durata_minute} + ' min'"></span></td>
                                 <td>
-                                    <span class="badge" th:classappend="${prog.status == 'PROGRAMAT' ? 'bg-success' : (prog.status == 'FINALIZAT' ? 'bg-secondary' : 'bg-warning text-dark')}" th:text="${prog.status}"></span>
+                                    <span class="badge" th:classappend="${prog.status == 'PROGRAMAT' ? 'bg-success' : (prog.status == 'FINALIZAT' ? 'bg-secondary' : (prog.status == 'ANULAT' ? 'bg-danger' : 'bg-warning text-dark'))}" th:text="${prog.status}"></span>
                                 </td>
                                 <td>
-                                    <button th:if="${prog.status == 'PROGRAMAT'}" type="button" class="btn btn-sm btn-outline-success fw-bold" data-bs-toggle="modal" th:data-bs-target="'#modalFinalizeaza' + ${prog.id_consultatie}">
+                                    <button th:if="${isDoctor and prog.status == 'PROGRAMAT'}"
+                                            type="button" class="btn btn-sm btn-outline-success fw-bold me-1"
+                                            data-bs-toggle="modal" th:data-bs-target="'#modalFinalizeaza' + ${prog.id_consultatie}">
                                         <i class="fas fa-stethoscope"></i> Consultă
                                     </button>
 
-                                    <div class="modal fade" th:id="'modalFinalizeaza' + ${prog.id_consultatie}" tabindex="-1" aria-hidden="true">
+                                    <form th:if="${prog.status == 'PROGRAMAT'}" action="/anuleaza" method="post" class="d-inline">
+                                        <input type="hidden" name="idConsultatie" th:value="${prog.id_consultatie}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" onclick="return confirm('Ești sigur că vrei să anulezi această programare?')">
+                                            <i class="fas fa-times"></i> Anulează
+                                        </button>
+                                    </form>
+
+                                    <span th:if="${prog.status != 'PROGRAMAT'}" class="text-muted small">
+        <i class="fas fa-lock"></i> Blocat
+    </span>
+
+                                    <div th:if="${isDoctor}" class="modal fade" th:id="'modalFinalizeaza' + ${prog.id_consultatie}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content border-success">
                                                 <div class="modal-header bg-success text-white">
                                                     <h5 class="modal-title"><i class="fas fa-file-medical"></i> Finalizare Consult #<span th:text="${prog.id_consultatie}"></span></h5>
                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                                <div class="modal-body">
+                                                <div class="modal-body text-start">
                                                     <p class="small text-muted mb-3">Pacient: <strong th:text="${prog.pacient}"></strong></p>
                                                     <form action="/finalizeaza" method="post">
                                                         <input type="hidden" name="idConsultatie" th:value="${prog.id_consultatie}">
-
                                                         <div class="mb-3">
-                                                            <label class="form-label fw-bold small text-success">Diagnostic Final Identificat:</label>
-                                                            <input type="text" class="form-control" name="diagnosticFinal" required placeholder="Ex: Viroză respiratorie acută">
+                                                            <label class="form-label fw-bold small text-success">Diagnostic Final:</label>
+                                                            <input type="text" class="form-control" name="diagnosticFinal" required>
                                                         </div>
-
                                                         <div class="mb-3">
-                                                            <label class="form-label fw-bold small text-primary">Rețetă Electronică (Opțional):</label>
-                                                            <textarea class="form-control" name="reteta" rows="3" placeholder="Ex: Paracetamol 500mg, 1 la 8 ore..."></textarea>
+                                                            <label class="form-label fw-bold small text-primary">Rețetă (Opțional):</label>
+                                                            <textarea class="form-control" name="reteta" rows="2"></textarea>
                                                         </div>
-
-                                                        <button type="submit" class="btn btn-success w-100"><i class="fas fa-check-circle"></i> Salvează și Închide Consultația</button>
+                                                        <button type="submit" class="btn btn-success w-100">Salvează</button>
                                                     </form>
                                                 </div>
                                             </div>
